@@ -26,7 +26,7 @@ def main_loop():
 
     while True:
         ir = get_ir()
-        if ir > 900:  # seuil à adapter selon test (ligne blanche)
+        if ir > 900:  
             print("Trop proche de la ligne, on recule !")
             send('B')
             time.sleep(0.5)

@@ -14,6 +14,11 @@
 // Capteur IR (ligne blanche)
 #define IR_SENSOR A0
 
+// Vitesses prédéfinies
+#define SPEED_LOW 120
+#define SPEED_MED 180
+#define SPEED_HIGH 255
+
 void setup() {
   Serial.begin(9600);
   
@@ -27,11 +32,54 @@ void setup() {
 void loop() {
   if (Serial.available()) {
     char cmd = Serial.read();
+    
+    // Commandes basiques
     switch(cmd) {
-      case 'F': forward(); break;
-      case 'B': backward(); break;
-      case 'L': turnLeft(); break;
-      case 'R': turnRight(); break;
+      case 'F': 
+        // Vérifie s'il y a un paramètre de vitesse
+        if (Serial.available()) {
+          char speed = Serial.read();
+          if (speed == 'L') forward(SPEED_LOW);
+          else if (speed == 'M') forward(SPEED_MED);
+          else if (speed == 'H') forward(SPEED_HIGH);
+          else forward(SPEED_MED); // Par défaut
+        } else {
+          forward(SPEED_MED); // Par défaut
+        }
+        break;
+      case 'B': 
+        if (Serial.available()) {
+          char speed = Serial.read();
+          if (speed == 'L') backward(SPEED_LOW);
+          else if (speed == 'M') backward(SPEED_MED);
+          else if (speed == 'H') backward(SPEED_HIGH);
+          else backward(SPEED_MED);
+        } else {
+          backward(SPEED_MED);
+        }
+        break;
+      case 'L': 
+        if (Serial.available()) {
+          char speed = Serial.read();
+          if (speed == 'L') turnLeft(SPEED_LOW);
+          else if (speed == 'M') turnLeft(SPEED_MED);
+          else if (speed == 'H') turnLeft(SPEED_HIGH);
+          else turnLeft(SPEED_MED);
+        } else {
+          turnLeft(SPEED_MED);
+        }
+        break;
+      case 'R': 
+        if (Serial.available()) {
+          char speed = Serial.read();
+          if (speed == 'L') turnRight(SPEED_LOW);
+          else if (speed == 'M') turnRight(SPEED_MED);
+          else if (speed == 'H') turnRight(SPEED_HIGH);
+          else turnRight(SPEED_MED);
+        } else {
+          turnRight(SPEED_MED);
+        }
+        break;
       case 'S': stopMotors(); break;
       case 'D': sendDistance(); break;
       case 'I': sendIR(); break;
@@ -39,33 +87,34 @@ void loop() {
   }
 }
 
-void forward() {
+void forward(int speed) {
   digitalWrite(IN1, HIGH); digitalWrite(IN2, LOW);
   digitalWrite(IN3, HIGH); digitalWrite(IN4, LOW);
-  analogWrite(ENA, 180); analogWrite(ENB, 180);
+  analogWrite(ENA, speed); analogWrite(ENB, speed);
 }
 
-void backward() {
+void backward(int speed) {
   digitalWrite(IN1, LOW); digitalWrite(IN2, HIGH);
   digitalWrite(IN3, LOW); digitalWrite(IN4, HIGH);
-  analogWrite(ENA, 180); analogWrite(ENB, 180);
+  analogWrite(ENA, speed); analogWrite(ENB, speed);
 }
 
-void turnLeft() {
+void turnLeft(int speed) {
   digitalWrite(IN1, LOW); digitalWrite(IN2, HIGH);
   digitalWrite(IN3, HIGH); digitalWrite(IN4, LOW);
-  analogWrite(ENA, 150); analogWrite(ENB, 150);
+  analogWrite(ENA, speed); analogWrite(ENB, speed);
 }
 
-void turnRight() {
+void turnRight(int speed) {
   digitalWrite(IN1, HIGH); digitalWrite(IN2, LOW);
   digitalWrite(IN3, LOW); digitalWrite(IN4, HIGH);
-  analogWrite(ENA, 150); analogWrite(ENB, 150);
+  analogWrite(ENA, speed); analogWrite(ENB, speed);
 }
 
 void stopMotors() {
-  digitalWrite(ENA, LOW);
-  digitalWrite(ENB, LOW);
+  digitalWrite(IN1, LOW); digitalWrite(IN2, LOW);
+  digitalWrite(IN3, LOW); digitalWrite(IN4, LOW);
+  analogWrite(ENA, 0); analogWrite(ENB, 0);
 }
 
 void sendDistance() {

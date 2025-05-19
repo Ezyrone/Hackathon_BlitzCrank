@@ -1,8 +1,9 @@
 import serial
 import time
+from utils.sensors import get_distance, get_ir_value, is_on_ring, forward, backward, left, right, stop
 
 arduino = serial.Serial('/dev/ttyUSB0', 9600, timeout=1)
-time.sleep(2)  # Laisser le temps à l'Arduino de redémarrer
+time.sleep(2)  
 
 def send(cmd):
     arduino.write(cmd.encode())
@@ -20,30 +21,33 @@ def get_ir():
     time.sleep(0.1)
     return int(read_response() or 0)
 
+
 def main_loop():
     print("Démarrage dans 5 secondes...")
     time.sleep(5)
 
     while True:
-        ir = get_ir()
-        if ir > 900:  
-            print("Trop proche de la ligne, on recule !")
-            send('B')
-            time.sleep(0.5)
-            send('L')
+        ir = get_ir_value(arduino)
+        if not is_on_ring(ir):
+            print("⚠️ Hors du ring détecté !")
+            backward(arduino)
+            time.sleep(0.4)
+            left(arduino)
             time.sleep(0.3)
-            send('S')
+            stop(arduino)
         else:
-            dist = get_distance()
-            print(f"Distance: {dist} cm")
+            dist = get_distance(arduino)
             if dist < 30:
-                send('F')
-                time.sleep(0.3)
-            else:
-                send('L')
+                forward(arduino)
                 time.sleep(0.2)
-            send('S')
+            else:
+                left(arduino)
+                time.sleep(0.2)
+            stop(arduino)
+
         time.sleep(0.1)
+
+
 
 if __name__ == "__main__":
     try:

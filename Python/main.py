@@ -1,75 +1,63 @@
-import serial
+import os
 import time
+import serial
 from utils.sensors import (
-    get_distance,
-    get_ir_value,
-    is_on_ring,
-    forward,
-    backward,
-    left,
-    right,
-    stop,
-    rotate_cw,
-    rotate_ccw
+    get_distance, get_ir_value, is_on_ring,
+    forward, backward, left, right,
+    rotate_cw, rotate_ccw, stop
 )
 
-# === ÉTATS POSSIBLES ===
-STATE_SCAN = "SCAN"
-STATE_ATTACK = "ATTACK"
-STATE_ESCAPE = "ESCAPE"
+# === LECTURE AUDIO ===
+import os
 
-# === INIT ===
+def play_john_cena():
+    print("🔊 Lecture de l’intro : JOHN CENA !")
+    os.system("file/and-his-name-is-john-cena-sound-effect-(hd)-made-with-Voicemod.mp3")
+
+
+# === INITIALISATION ===
 arduino = serial.Serial('/dev/ttyUSB0', 9600, timeout=1)
 time.sleep(2)
 
-# === PARAMÈTRES ===
-DISTANCE_THRESHOLD = 30  # cm
-ESCAPE_DURATION = 0.4
-ATTACK_DURATION = 0.2
-SCAN_ROTATION_TIME = 0.3
-
 def main_loop():
-    state = STATE_SCAN
-    print("⏳ Attente règlementaire de 5 secondes...")
+    play_john_cena()
+    print("⏳ Attente de 5 secondes (règlement)...")
     time.sleep(5)
+
+    state = "SCAN"
 
     while True:
         try:
             ir = get_ir_value(arduino)
             dist = get_distance(arduino)
 
-            # 🔁 Sécurité : sortir si on touche la ligne blanche
             if not is_on_ring(ir):
-                print("⚠️ Proximité bord détectée : ESCAPE")
-                state = STATE_ESCAPE
-
-            if state == STATE_ESCAPE:
+                print("⚠️ Bord détecté : ESCAPE")
                 backward(arduino)
-                time.sleep(ESCAPE_DURATION)
+                time.sleep(0.4)
                 rotate_ccw(arduino)
                 time.sleep(0.3)
                 stop(arduino)
-                state = STATE_SCAN
+                state = "SCAN"
 
-            elif dist < DISTANCE_THRESHOLD:
-                print("🎯 Ennemie détecté à", dist, "cm : ATTACK")
+            elif dist < 30:
+                print(f"🎯 Ennemi à {dist} cm : ATTACK")
                 forward(arduino)
-                time.sleep(ATTACK_DURATION)
+                time.sleep(0.2)
                 stop(arduino)
-                state = STATE_SCAN  # ou rester en ATTACK si tu veux enchainer
+                state = "SCAN"
 
             else:
-                print("🔎 Aucun ennemi : SCAN (rotation)")
+                print("🔎 SCAN (rotation)")
                 rotate_cw(arduino)
-                time.sleep(SCAN_ROTATION_TIME)
+                time.sleep(0.3)
                 stop(arduino)
-                state = STATE_SCAN
 
             time.sleep(0.1)
 
         except KeyboardInterrupt:
             stop(arduino)
-            print("🛑 Interruption manuelle")
+            print("🛑 Arrêt manuel")
             break
 
 if __name__ == "__main__":
